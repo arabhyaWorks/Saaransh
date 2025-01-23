@@ -92,7 +92,7 @@ function App() {
       // Update editor content after state updates
       setTimeout(() => {
         if (editorRef.current) {
-          editorRef.current.innerHTML = secondPageContent;
+          editorRef.current.innerHTML = "";
         }
       }, 0);
     } else {

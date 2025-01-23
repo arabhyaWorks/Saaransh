@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Bold, Italic, Download, Type } from "lucide-react";
+import Editor from "./Editor";
 
 function App() {
   const [pages, setPages] = useState<string[]>([""]);
@@ -85,16 +86,18 @@ function App() {
       newPages[0] = firstPageContent;
 
       // Add second page
-      newPages.push(secondPageContent);
+      newPages.push("");
 
       setPages(newPages);
 
       // Update editor content after state updates
-      setTimeout(() => {
-        if (editorRef.current) {
-          editorRef.current.innerHTML = "";
-        }
-      }, 0);
+
+      //   setTimeout(() => {
+      //     console.log("Updating editor content");
+      //     if (editorRef.current) {
+      //       editorRef.current.innerHTML = "";
+      //     }
+      //   }, 0);
     } else {
       setPages(newPages);
     }
@@ -149,34 +152,14 @@ function App() {
         {/* Stacked Pages */}
         <div className="flex flex-col gap-4 ">
           {pages.map((pageContent, index) => (
-            <div
+            <Editor
               key={index}
-              className="relative gap-2 shadow-lg rounded-lg overflow-hidden"
-            >
-              <h1 className="absolute p-2">{index + 1}</h1>
-              <div
-                ref={index === pages.length - 1 ? editorRef : null}
-                contentEditable={index === pages.length - 1}
-                onInput={
-                  index === pages.length - 1
-                    ? () => {
-                        handleInput(pages.length - 1);
-                      }
-                    : undefined
-                }
-                className="w-[210mm] mx-auto outline-none bg-green-500 overflow-hidden "
-                style={{
-                  height: `${PAGE_HEIGHT}px`,
-                  padding: "20mm",
-                  backgroundColor: "white",
-                  overflowY: "hidden",
-                  boxSizing: "border-box",
-                }}
-                dangerouslySetInnerHTML={{
-                  __html: index !== pages.length - 1 ? pageContent : undefined,
-                }}
-              />
-            </div>
+              index={index}
+              pageContent={pageContent}
+              pages={pages}
+              editorRef={editorRef}
+              handleInput={handleInput}
+            />
           ))}
         </div>
       </div>

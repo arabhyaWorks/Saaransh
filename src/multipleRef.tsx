@@ -3,7 +3,7 @@ import { Bold, Italic, Download, Type } from "lucide-react";
 
 function App() {
   const [pages, setPages] = useState<string[]>([""]);
-  const editorRef = useRef<HTMLDivElement>(null);
+  const editorRefs = useRef<(HTMLDivElement | null)[]>([]); // Array of refs for each page
 
   const PAGE_HEIGHT = 1123; // A4 height in pixels (297mm ≈ 1123px)
 
@@ -36,20 +36,18 @@ function App() {
     console.log(content);
   };
 
-  const handleInput = (index) => {
-    if (!editorRef.current) return;
+  // Handles input for a specific page
+  const handleInput = (index: number) => {
+    const editor = editorRefs.current[index]; // Get the ref for the current page
+    if (!editor) return;
 
-    const content = editorRef.current.innerHTML;
+    const content = editor.innerHTML; // Get the content of the editor
     const newPages = [...pages];
-    console.log("Creating new Pages but not updating");
-    console.log(newPages);
-    newPages[index] = content;
-    console.log(newPages);
+    newPages[index] = content; // Update the content for the current page
 
     // Check if content overflows the current page
-    if (editorRef.current.scrollHeight > PAGE_HEIGHT) {
-      // Get all content nodes
-      const nodes = Array.from(editorRef.current.childNodes);
+    if (editor.scrollHeight > PAGE_HEIGHT) {
+      const nodes = Array.from(editor.childNodes); // Get all child nodes
       let currentHeight = 0;
       let splitIndex = nodes.length;
 
@@ -82,25 +80,23 @@ function App() {
         .join("");
 
       // Update first page
-      newPages[0] = firstPageContent;
+      newPages[index] = firstPageContent;
 
-      // Add second page
-      newPages.push("");
+      // Add new page if needed
+      if (index + 1 < pages.length) {
+        // newPages[index + 1] = secondPageContent + newPages[index + 1];
+        // newPages.push("");
+      } else {
+        newPages.push("");
+        editorRefs.current.push(null); // Add a new ref for the new page
+      }
 
-      setPages(newPages);
-
-      // Update editor content after state updates
-
-    //   setTimeout(() => {
-    //     console.log("Updating editor content");
-    //     if (editorRef.current) {
-    //       editorRef.current.innerHTML = "";
-    //     }
-    //   }, 0);
+      setPages(newPages); // Update the pages state
     } else {
-      setPages(newPages);
+      setPages(newPages); // Update pages without splitting
     }
   };
+
   useEffect(() => {
     console.log(pages);
   }, [pages.length]);
@@ -157,16 +153,10 @@ function App() {
             >
               <h1 className="absolute p-2">{index + 1}</h1>
               <div
-                ref={index === pages.length - 1 ? editorRef : null}
-                contentEditable={index === pages.length - 1}
-                onInput={
-                  index === pages.length - 1
-                    ? () => {
-                        handleInput(pages.length - 1);
-                      }
-                    : undefined
-                }
-                className="w-[210mm] mx-auto outline-none bg-green-500 overflow-hidden "
+                ref={(el) => (editorRefs.current[index] = el)} // Assign a unique ref for each page
+                contentEditable
+                onInput={() => handleInput(index)} // Handle input for the specific page
+                className="w-[210mm] mx-auto outline-none bg-green-500 overflow-hidden"
                 style={{
                   height: `${PAGE_HEIGHT}px`,
                   padding: "20mm",
@@ -174,9 +164,7 @@ function App() {
                   overflowY: "hidden",
                   boxSizing: "border-box",
                 }}
-                dangerouslySetInnerHTML={{
-                  __html: index !== pages.length - 1 ? pageContent : undefined,
-                }}
+                // dangerouslySetInnerHTML={{ __html: pageContent }} // Populate page content
               />
             </div>
           ))}

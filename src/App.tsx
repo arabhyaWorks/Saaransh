@@ -86,12 +86,11 @@ function App() {
 
         {/* Stacked Pages */}
 
-        <EditorStack pages={pages} setPages={setPages}  />
-        
+        <EditorStack pages={pages} setPages={setPages} />
       </div>
 
       <div
-        className="bg-green-400 p-4 overflow-y-scroll"
+        className="bg-green-400 p-4 overflow-y-scroll relative"
         style={{
           height: "100vh",
           display: "flex",
@@ -100,40 +99,56 @@ function App() {
         }}
       >
         {pages.map((pageContent, index) => (
-          <div
-            key={index}
-            className="page-container mb-8"
-            style={{
-              // width: "105mm", // Scaled-down width (50%)
-              width: (105 / 2).toString() + "mm",
-              // height: "148.5mm", // Scaled-down height (50%)
-              height: (148.5 / 2).toString() + "mm",
-              background: "green", // Background to see the container
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              boxShadow: "0 0 10px rgba(0,0,0,0.1)", // Optional shadow for better visibility
-            }}
-          >
+          <div className="p-2 relative">
             <div
               style={{
-                transform: "scale(0.25)", // Scale down to 50%
-                transformOrigin: "top left", // Align scaling to top-left
+                borderRadius: "100px",
+                position: "absolute",
+                top: "-10px",
+                left: "-10px",
+                zIndex: 1,
+              }}
+              className=" flex justify-center items-center  w-10 h-10 bg-red-500  "
+            >
+              <h1 className="p-2 " style={{}}>
+                {index + 1}
+              </h1>
+            </div>
+            <div
+              key={index}
+              className="page-container mb-8 "
+              style={{
+                // width: "105mm", // Scaled-down width (50%)
                 width: (105 / 2).toString() + "mm",
+                // height: "148.5mm", // Scaled-down height (50%)
                 height: (148.5 / 2).toString() + "mm",
+                background: "white", // Background to see the container
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                boxShadow: "0 0 10px rgba(0,0,0,0.1)", // Optional shadow for better visibility
               }}
             >
               <div
-                className="page"
                 style={{
-                  width: "210mm",
-                  height: "297mm",
-                  padding: "20mm",
-                  background: "white",
-                  boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+                  transform: "scale(0.25)", // Scale down to 50%
+                  transformOrigin: "top left", // Align scaling to top-left
+                  width: (105 / 2).toString() + "mm",
+                  height: (148.5 / 2).toString() + "mm",
                 }}
-                dangerouslySetInnerHTML={{ __html: pageContent }}
-              ></div>
+              >
+                <div
+                  className="page"
+                  style={{
+                    width: "210mm",
+                    height: "297mm",
+                    padding: "20mm",
+                    background: "white",
+                    boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+                  }}
+                  dangerouslySetInnerHTML={{ __html: pageContent }}
+                ></div>
+              </div>
             </div>
           </div>
         ))}

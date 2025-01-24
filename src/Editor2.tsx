@@ -2,23 +2,27 @@ import React, { useState, useEffect, useRef } from "react";
 
 const PAGE_HEIGHT = 1123; // A4 height in pixels (297mm ≈ 1123px)
 
-const Editor = ({ index, pageContent, pages, setPages }) => {
-  const [currentIndex, setCurrentIndex] = useState(pages.length - 1);
+const Editor = ({
+  index,
+  pageContent,
+  pages,
+  setPages,
+//   currentIndex,
+//   setCurrentIndex,
+}) => {
   const editorRef = useRef<HTMLDivElement>(null);
+  const [currentIndex, setCurrentIndex] = useState(0); // Track the current page being edited
 
-  const handleInput = (index) => {
+
+  const handleInput = () => {
     if (!editorRef.current) return;
 
     const content = editorRef.current.innerHTML;
     const newPages = [...pages];
-    console.log("Creating new Pages but not updating");
-    console.log(newPages);
     newPages[index] = content;
-    console.log(newPages);
 
     // Check if content overflows the current page
     if (editorRef.current.scrollHeight > PAGE_HEIGHT) {
-      // Get all content nodes
       const nodes = Array.from(editorRef.current.childNodes);
       let currentHeight = 0;
       let splitIndex = nodes.length;
@@ -51,24 +55,18 @@ const Editor = ({ index, pageContent, pages, setPages }) => {
         )
         .join("");
 
-      newPages[0] = firstPageContent;
-      console.log("Pages Length: ", newPages.length);
-      newPages.splice(index + 1, 0, "");
-      console.log("Index: ", index);
-      console.log("Current Index: ", currentIndex);
-      console.log("Pages Length after updating: ", newPages.length);
-      setPages(newPages);
-      console.log("       =======     ")
-      console.log("Index: ", index);
+      // Update the current page content
+      newPages[index] = firstPageContent;
 
+      // Insert a new page with the overflow content
+      newPages.splice(index + 1, 0, secondPageContent);
+
+      setPages(newPages);
+
+      // Focus on the newly inserted page
       if (index <= currentIndex) {
         setCurrentIndex(currentIndex + 1);
       }
-      
-      console.log("Current Index: ", currentIndex);
-
-     
-      
     } else {
       setPages(newPages);
     }
@@ -77,55 +75,36 @@ const Editor = ({ index, pageContent, pages, setPages }) => {
   useEffect(() => {
     // Automatically focus on the editor when it becomes the current page
     if (index === currentIndex && editorRef.current) {
-      console.log("Focus on page ", currentIndex + 1);
-  
-      // Ensure the editor content matches the current page's content
-      editorRef.current.innerHTML = pages[index];
       editorRef.current.focus();
-  
-      // Focus on the editor
     }
-  }, [currentIndex, index, pages]);
+  }, [currentIndex, index]);
 
   return (
-    <div
-      key={index}
-      className="relative gap-2 shadow-lg rounded-lg overflow-hidden"
-    >
+    <div className="relative gap-2 shadow-lg rounded-lg overflow-hidden">
       <h1 className="absolute p-2">{index + 1}</h1>
       <div
-        onClick={() => {
-          if (index !== currentIndex) {
-            console.log("Clicked", index);
-            setCurrentIndex(index);
-          }
-        }}
         ref={index === currentIndex ? editorRef : null}
         contentEditable={index === currentIndex}
-        onInput={
-          index === currentIndex
-            ? () => {
-                handleInput(currentIndex);
-              }
-            : undefined
-        }
+        onInput={() => handleInput()}
         className="w-[210mm] mx-auto outline-none bg-white overflow-hidden "
         style={{
           height: `${PAGE_HEIGHT}px`,
           padding: "20mm",
-
           overflowY: "hidden",
           boxSizing: "border-box",
         }}
-        
+        // dangerouslySetInnerHTML={{
+        //   __html: pageContent,
+        // }}
       />
     </div>
   );
 };
 
 const EditorStack = ({ pages, setPages }) => {
+
   return (
-    <div className="flex flex-col gap-4 ">
+    <div className="flex flex-col gap-4">
       {pages.map((pageContent, index) => (
         <Editor
           key={index}
@@ -133,6 +112,8 @@ const EditorStack = ({ pages, setPages }) => {
           pageContent={pageContent}
           pages={pages}
           setPages={setPages}
+        //   currentIndex={currentIndex}
+        //   setCurrentIndex={setCurrentIndex}
         />
       ))}
     </div>

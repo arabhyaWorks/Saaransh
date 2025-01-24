@@ -1,32 +1,83 @@
-import React, { useState, useEffect } from "react";
-import { Bold, Italic, Download, Type } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
 
 const PAGE_HEIGHT = 1123; // A4 height in pixels (297mm ≈ 1123px)
 
-const Editor = ({ index, pageContent, pages, editorRef, handleInput }) => {
-  const [pageClicked, setPageClicked] = useState(false);
-  const [pageClickedIndex, setPageClickedIndex] = useState(pages.length - 1);
+const Editor = ({ index, pageContent, pages, setPages }) => {
+  const [currentIndex, setCurrentIndex] = useState(pages.length - 1);
+  const editorRef = useRef<HTMLDivElement>(null);
 
-  const isContentEditable = () => {
-    if (pageClicked) {
-      return true;
+  const handleInput = (index) => {
+    if (!editorRef.current) return;
+
+    const content = editorRef.current.innerHTML;
+    const newPages = [...pages];
+    console.log("Creating new Pages but not updating");
+    console.log(newPages);
+    newPages[index] = content;
+    console.log(newPages);
+
+    // Check if content overflows the current page
+    if (editorRef.current.scrollHeight > PAGE_HEIGHT) {
+      // Get all content nodes
+      const nodes = Array.from(editorRef.current.childNodes);
+      let currentHeight = 0;
+      let splitIndex = nodes.length;
+
+      // Find the node that causes overflow
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        const nodeHeight =
+          (node as HTMLElement).offsetHeight || node.textContent?.length || 0;
+
+        if (currentHeight + nodeHeight > PAGE_HEIGHT) {
+          splitIndex = i;
+          break;
+        }
+        currentHeight += nodeHeight;
+      }
+
+      // Split content between pages
+      const firstPageContent = nodes
+        .slice(0, splitIndex)
+        .map((node) =>
+          node instanceof HTMLElement ? node.outerHTML : node.textContent
+        )
+        .join("");
+
+      const secondPageContent = nodes
+        .slice(splitIndex)
+        .map((node) =>
+          node instanceof HTMLElement ? node.outerHTML : node.textContent
+        )
+        .join("");
+
+      // Update first page
+      newPages[0] = firstPageContent;
+
+      // Add second page
+
+      console.log("Pages Length: ", newPages.length);
+      // newPages.push("");
+      newPages.splice(index + 1, 0, "");
+
+      // newPages[index + 1] = "";
+      console.log("Pages Length after updating: ", newPages.length);
+
+      setPages(newPages);
+      
+
+      // Update editor content after state updates
+
+      //   setTimeout(() => {
+      //     console.log("Updating editor content");
+      //     if (editorRef.current) {
+      //       editorRef.current.innerHTML = "";
+      //     }
+      //   }, 0);
     } else {
-      return index === pages.length - 1;
+      setPages(newPages);
     }
   };
-
-  const currentRef = () => {
-    if (pageClicked) {
-      index === pageClickedIndex ? editorRef : null;
-    } else {
-      index === pages.length - 1 ? editorRef : null;
-    }
-  };
-  //   useEffect(() => {
-  //     if (index === pages.length - 1) {
-  //       editorRef.current.focus();
-  //     }
-  //   } , [index, pages.length, editorRef]);
 
   return (
     <div
@@ -36,25 +87,21 @@ const Editor = ({ index, pageContent, pages, editorRef, handleInput }) => {
       <h1 className="absolute p-2">{index + 1}</h1>
       <div
         onClick={() => {
-          if (index !== pages.length - 1) {
+          if (index !== currentIndex) {
             console.log("Clicked", index);
-            setPageClicked(true);
-            setPageClickedIndex(index);
-
-            editorRef.current.focus();
+            setCurrentIndex(index);
           }
         }}
-        ref={currentRef()}
-        // ref={index === pages.length - 1 ? editorRef : null}
-        contentEditable={isContentEditable()}
+        ref={index === currentIndex ? editorRef : null}
+        contentEditable={index === currentIndex}
         onInput={
-          index === pages.length - 1
+          index === currentIndex
             ? () => {
-                handleInput(pages.length - 1);
+                handleInput(currentIndex);
               }
             : undefined
         }
-        className="w-[210mm] mx-auto outline-none bg-green-200 overflow-hidden "
+        className="w-[210mm] mx-auto outline-none bg-white overflow-hidden "
         style={{
           height: `${PAGE_HEIGHT}px`,
           padding: "20mm",
@@ -63,11 +110,29 @@ const Editor = ({ index, pageContent, pages, editorRef, handleInput }) => {
           boxSizing: "border-box",
         }}
         dangerouslySetInnerHTML={{
-          __html: index !== pages.length - 1 ? pageContent : undefined,
+          __html: index !== currentIndex ? pageContent : undefined,
         }}
       />
     </div>
   );
 };
 
-export default Editor;
+const EditorStack = ({ pages, setPages }) => {
+
+
+  return (
+    <div className="flex flex-col gap-4 ">
+      {pages.map((pageContent, index) => (
+        <Editor
+          key={index}
+          index={index}
+          pageContent={pageContent}
+          pages={pages}
+          setPages={setPages}
+        />
+      ))}
+    </div>
+  );
+};
+
+export default EditorStack;

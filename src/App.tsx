@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Bold, Italic, Download, Type } from "lucide-react";
 import Editor from "./Editor";
+import EditorStack from "./Editor";
 
 function App() {
   const [pages, setPages] = useState<string[]>([""]);
-  const editorRef = useRef<HTMLDivElement>(null);
 
   const PAGE_HEIGHT = 1123; // A4 height in pixels (297mm ≈ 1123px)
 
@@ -37,74 +37,9 @@ function App() {
     console.log(content);
   };
 
-  const handleInput = (index) => {
-    if (!editorRef.current) return;
-
-    const content = editorRef.current.innerHTML;
-    const newPages = [...pages];
-    console.log("Creating new Pages but not updating");
-    console.log(newPages);
-    newPages[index] = content;
-    console.log(newPages);
-
-    // Check if content overflows the current page
-    if (editorRef.current.scrollHeight > PAGE_HEIGHT) {
-      // Get all content nodes
-      const nodes = Array.from(editorRef.current.childNodes);
-      let currentHeight = 0;
-      let splitIndex = nodes.length;
-
-      // Find the node that causes overflow
-      for (let i = 0; i < nodes.length; i++) {
-        const node = nodes[i];
-        const nodeHeight =
-          (node as HTMLElement).offsetHeight || node.textContent?.length || 0;
-
-        if (currentHeight + nodeHeight > PAGE_HEIGHT) {
-          splitIndex = i;
-          break;
-        }
-        currentHeight += nodeHeight;
-      }
-
-      // Split content between pages
-      const firstPageContent = nodes
-        .slice(0, splitIndex)
-        .map((node) =>
-          node instanceof HTMLElement ? node.outerHTML : node.textContent
-        )
-        .join("");
-
-      const secondPageContent = nodes
-        .slice(splitIndex)
-        .map((node) =>
-          node instanceof HTMLElement ? node.outerHTML : node.textContent
-        )
-        .join("");
-
-      // Update first page
-      newPages[0] = firstPageContent;
-
-      // Add second page
-      newPages.push("");
-
-      setPages(newPages);
-
-      // Update editor content after state updates
-
-      //   setTimeout(() => {
-      //     console.log("Updating editor content");
-      //     if (editorRef.current) {
-      //       editorRef.current.innerHTML = "";
-      //     }
-      //   }, 0);
-    } else {
-      setPages(newPages);
-    }
-  };
   useEffect(() => {
-    console.log(pages);
-  }, [pages.length]);
+    // console.log(pages);
+  }, [pages]);
 
   return (
     <div className="min-h-screen flex  bg-gray-100">
@@ -150,18 +85,9 @@ function App() {
         </div>
 
         {/* Stacked Pages */}
-        <div className="flex flex-col gap-4 ">
-          {pages.map((pageContent, index) => (
-            <Editor
-              key={index}
-              index={index}
-              pageContent={pageContent}
-              pages={pages}
-              editorRef={editorRef}
-              handleInput={handleInput}
-            />
-          ))}
-        </div>
+
+        <EditorStack pages={pages} setPages={setPages}  />
+        
       </div>
 
       <div

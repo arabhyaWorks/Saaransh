@@ -51,33 +51,30 @@ const Editor = ({ index, pageContent, pages, setPages }) => {
         )
         .join("");
 
-      // Update first page
       newPages[0] = firstPageContent;
-
-      // Add second page
-
       console.log("Pages Length: ", newPages.length);
-      // newPages.push("");
       newPages.splice(index + 1, 0, "");
-
-      // newPages[index + 1] = "";
+      console.log("Index: ", index);
+      console.log("Current Index: ", currentIndex);
       console.log("Pages Length after updating: ", newPages.length);
-
       setPages(newPages);
+      console.log("       =======     ")
+      console.log("Index: ", index);
+      console.log("Current Index: ", currentIndex);
       
-
-      // Update editor content after state updates
-
-      //   setTimeout(() => {
-      //     console.log("Updating editor content");
-      //     if (editorRef.current) {
-      //       editorRef.current.innerHTML = "";
-      //     }
-      //   }, 0);
     } else {
       setPages(newPages);
     }
   };
+
+  // useEffect(() => {
+  //   // Automatically focus on the editor when it becomes the current page
+  //   if (index === currentIndex && editorRef.current) {
+  //     console.log("Focus on page ");
+  //     console.log(currentIndex + 1);
+  //     editorRef.current.focus();
+  //   }
+  // }, [currentIndex, index]);
 
   return (
     <div
@@ -118,8 +115,6 @@ const Editor = ({ index, pageContent, pages, setPages }) => {
 };
 
 const EditorStack = ({ pages, setPages }) => {
-
-
   return (
     <div className="flex flex-col gap-4 ">
       {pages.map((pageContent, index) => (

@@ -1,8 +1,7 @@
-let array = ['a', 'b', 'c', 'd', 'e'];
+when the cursor is the let us 0th index, and i click h 
+then h got written,(what ideally should happen now it that the cursor should move to the right by 1 index, but it is not happening and the cursor is still at the 0th index)
 
-// Insert element 99 between index 2 and 3
-let insertIndex = 5; // The position where you want to insert
-array.splice(insertIndex, 0, '99');
+then i click e, then e got written, on the 0th index on the left of the "h", and the cursor is still at the 0th index
 
-console.log(array);
-// Output: [1, 2, 3, 99, 4, 5]
+1. H 
+2. EH

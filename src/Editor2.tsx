@@ -7,23 +7,26 @@ const Editor = ({
   pageContent,
   pages,
   setPages,
-//   currentIndex,
-//   setCurrentIndex,
+  pageRefs,
+  setPageRefs,
+  currentIndex,
+  setCurrentIndex,
 }) => {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const [currentIndex, setCurrentIndex] = useState(0); // Track the current page being edited
+  const [cursorPosition, setCursorPosition] = useState(0);
 
+  const handleInput = (index: number) => {
+    console.log("Input on page ", index + 1);
+    const currentRef = pageRefs[index];
+    if (!currentRef.current) return;
 
-  const handleInput = () => {
-    if (!editorRef.current) return;
-
-    const content = editorRef.current.innerHTML;
+    const content = currentRef.current.innerHTML;
     const newPages = [...pages];
     newPages[index] = content;
 
     // Check if content overflows the current page
-    if (editorRef.current.scrollHeight > PAGE_HEIGHT) {
-      const nodes = Array.from(editorRef.current.childNodes);
+    if (currentRef.current.scrollHeight > PAGE_HEIGHT) {
+      // Get all content nodes
+      const nodes = Array.from(currentRef.current.childNodes);
       let currentHeight = 0;
       let splitIndex = nodes.length;
 
@@ -55,38 +58,95 @@ const Editor = ({
         )
         .join("");
 
-      // Update the current page content
+      // Update first page
       newPages[index] = firstPageContent;
 
-      // Insert a new page with the overflow content
-      newPages.splice(index + 1, 0, secondPageContent);
+      // Add second page
+      // if (index === pages.length - 1) {
+        newPages.splice(index + 1, 0, secondPageContent);
+        const newPageRefs = [...pageRefs, React.createRef<HTMLDivElement>()];
 
-      setPages(newPages);
+        setPages(newPages);
+        setPageRefs(newPageRefs);
 
-      // Focus on the newly inserted page
-      if (index <= currentIndex) {
-        setCurrentIndex(currentIndex + 1);
-      }
+        if (index <= currentIndex) {
+          setCurrentIndex(currentIndex + 1);
+        }
+      // }
     } else {
       setPages(newPages);
     }
   };
 
+  // const onHandleInput = (data, index) => {
+  //   console.log(data.nativeEvent.data);
+  //   console.log(data.nativeEvent.data?.length); // Add a null check here
+  
+  //   const updatedCursorPosition = cursorPosition + (data.nativeEvent.data?.length || 0);
+  
+  //   handleInput(index);
+  
+  //   setTimeout(() => {
+  //     const selection = window.getSelection();
+  //     if (selection.rangeCount > 0) {
+  //       const range = selection.getRangeAt(0);
+  //       const textNode = range.startContainer;
+  //       const cursorPosition = range.startOffset + (data.nativeEvent.data?.length || 0);
+  //       range.setStart(textNode, cursorPosition);
+  //       range.setEnd(textNode, cursorPosition);
+  //       range.collapse(true);
+  //       selection.removeAllRanges();
+  //       selection.addRange(range);
+  //     }
+  //   }, 0);
+  // };
+
+
+
   useEffect(() => {
-    // Automatically focus on the editor when it becomes the current page
-    if (index === currentIndex && editorRef.current) {
-      editorRef.current.focus();
+    if (index === currentIndex && pageRefs[currentIndex].current) {
+      console.log("Focus on page ", currentIndex + 1);
+      // pageRefs[currentIndex].current.innerHTML = pages[index];
+
+      pageRefs[currentIndex].current.focus();
     }
-  }, [currentIndex, index]);
+  }, [currentIndex, index, pages]);
 
   return (
-    <div className="relative gap-2 shadow-lg rounded-lg overflow-hidden">
-      <h1 className="absolute p-2">{index + 1}</h1>
+    <div
+      key={index}
+      className="relative gap-2 shadow-lg rounded-lg overflow-hidden"
+    >
+      <h1 className="absolute p-2">
+        Page {index}, Current Index {currentIndex}, cursor Positiion{" "}
+        {cursorPosition}
+      </h1>
       <div
-        ref={index === currentIndex ? editorRef : null}
-        contentEditable={index === currentIndex}
-        onInput={() => handleInput()}
-        className="w-[210mm] mx-auto outline-none bg-white overflow-hidden "
+        // ref={pageRefs[index]}
+        ref={index === currentIndex ? pageRefs[index] : null}
+        onClick={() => {
+          // if (index !== currentIndex) {
+          console.log("Clicked", index);
+          setCurrentIndex(index);
+          // }
+        }}
+        // contentEditable={index === currentIndex}
+        contentEditable={true}
+        // dir="ltr" // Add this attribute
+
+        onInput={
+          index === currentIndex
+            ? () => {
+                handleInput(currentIndex);
+              }
+            : undefined
+        }
+        // onInput={(data) => {
+        //   if (index === currentIndex) {
+        //     onHandleInput(data, index);
+        //   }
+        // }}
+        className="w-[210mm] mx-auto outline-none bg-white overflow-hidden"
         style={{
           height: `${PAGE_HEIGHT}px`,
           padding: "20mm",
@@ -94,6 +154,7 @@ const Editor = ({
           boxSizing: "border-box",
         }}
         // dangerouslySetInnerHTML={{
+        //   // __html: index === currentIndex ? pageContent : undefined,
         //   __html: pageContent,
         // }}
       />
@@ -101,10 +162,11 @@ const Editor = ({
   );
 };
 
-const EditorStack = ({ pages, setPages }) => {
+const EditorStack = ({ pages, setPages, pageRefs, setPageRefs }) => {
+  const [currentIndex, setCurrentIndex] = useState(pages.length - 1);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 ">
       {pages.map((pageContent, index) => (
         <Editor
           key={index}
@@ -112,8 +174,10 @@ const EditorStack = ({ pages, setPages }) => {
           pageContent={pageContent}
           pages={pages}
           setPages={setPages}
-        //   currentIndex={currentIndex}
-        //   setCurrentIndex={setCurrentIndex}
+          pageRefs={pageRefs}
+          setPageRefs={setPageRefs}
+          currentIndex={currentIndex}
+          setCurrentIndex={setCurrentIndex}
         />
       ))}
     </div>

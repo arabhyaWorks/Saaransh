@@ -1,48 +1,21 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Bold, Italic, Download, Type } from "lucide-react";
-import Editor from "./Editor";
+import { Bold, Italic, Download, Type, Edit } from "lucide-react";
 import EditorStack from "./Editor";
 
 function App() {
   const [pages, setPages] = useState<string[]>([""]);
-
-  const PAGE_HEIGHT = 1123; // A4 height in pixels (297mm ≈ 1123px)
+  const [pageRefs, setPageRefs] = useState<React.RefObject<HTMLDivElement>[]>([
+    React.createRef<HTMLDivElement>(),
+  ]);
 
   const handleFormat = (command: string, value?: string) => {
     document.execCommand(command, false, value);
   };
 
-  const handleExport = () => {
-    const content = pages.join(
-      " =================                \n\n\n\n\n\n                    ================= "
-    );
-
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { background: #f0f0f0; margin: 0; font-family: Arial; }
-            .page { break-after: page; box-sizing: border-box; }
-            @media print { 
-              .page { margin: 0; box-shadow: none; }
-              @page { size: A4; margin: 20mm; }
-            }
-          </style>
-        </head>
-        <body>${content}</body>
-      </html>
-    `;
-
-    console.log(content);
-  };
-
-  useEffect(() => {
-    // console.log(pages);
-  }, [pages]);
 
   return (
-    <div className="min-h-screen flex  bg-gray-100">
+    <div className="min-h-screen flex bg-gray-100">
+      {/* Editor Side */}
       <div className="bg-red-400 h-[100vh] overflow-scroll max-w-[210mm] mx-auto p-4">
         {/* Toolbar */}
         <div className="bg-white shadow-sm mb-4 p-2 rounded-lg flex gap-2 sticky top-0 z-10">
@@ -77,7 +50,7 @@ function App() {
             <option value="Courier New">Courier New</option>
           </select>
           <button
-            onClick={handleExport}
+            // onClick={handleExport}
             className="ml-auto p-2 bg-blue-500 text-white rounded flex items-center gap-2 hover:bg-blue-600"
           >
             <Download size={20} /> Export
@@ -85,12 +58,17 @@ function App() {
         </div>
 
         {/* Stacked Pages */}
-
-        <EditorStack pages={pages} setPages={setPages} />
+        <EditorStack
+          pages={pages}
+          setPages={setPages}
+          pageRefs={pageRefs}
+          setPageRefs={setPageRefs}
+        />
       </div>
 
+      {/* Preview Side */}
       <div
-        className="bg-green-400 p-4 overflow-y-scroll relative"
+        className="bg-green-400 p-4 overflow-y-scroll"
         style={{
           height: "100vh",
           display: "flex",
@@ -99,56 +77,38 @@ function App() {
         }}
       >
         {pages.map((pageContent, index) => (
-          <div className="p-2 relative">
+          <div
+            key={index}
+            className="page-container mb-8"
+            style={{
+              width: (105 / 2).toString() + "mm",
+              height: (148.5 / 2).toString() + "mm",
+              background: "green",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+            }}
+          >
             <div
               style={{
-                borderRadius: "100px",
-                position: "absolute",
-                top: "-10px",
-                left: "-10px",
-                zIndex: 1,
-              }}
-              className=" flex justify-center items-center  w-10 h-10 bg-red-500  "
-            >
-              <h1 className="p-2 " style={{}}>
-                {index + 1}
-              </h1>
-            </div>
-            <div
-              key={index}
-              className="page-container mb-8 "
-              style={{
-                // width: "105mm", // Scaled-down width (50%)
+                transform: "scale(0.25)",
+                transformOrigin: "top left",
                 width: (105 / 2).toString() + "mm",
-                // height: "148.5mm", // Scaled-down height (50%)
                 height: (148.5 / 2).toString() + "mm",
-                background: "white", // Background to see the container
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                boxShadow: "0 0 10px rgba(0,0,0,0.1)", // Optional shadow for better visibility
               }}
             >
               <div
+                className="page"
                 style={{
-                  transform: "scale(0.25)", // Scale down to 50%
-                  transformOrigin: "top left", // Align scaling to top-left
-                  width: (105 / 2).toString() + "mm",
-                  height: (148.5 / 2).toString() + "mm",
+                  width: "210mm",
+                  height: "297mm",
+                  padding: "20mm",
+                  background: "white",
+                  boxShadow: "0 0 10px rgba(0,0,0,0.1)",
                 }}
-              >
-                <div
-                  className="page"
-                  style={{
-                    width: "210mm",
-                    height: "297mm",
-                    padding: "20mm",
-                    background: "white",
-                    boxShadow: "0 0 10px rgba(0,0,0,0.1)",
-                  }}
-                  dangerouslySetInnerHTML={{ __html: pageContent }}
-                ></div>
-              </div>
+                dangerouslySetInnerHTML={{ __html: pageContent }}
+              ></div>
             </div>
           </div>
         ))}

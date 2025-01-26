@@ -129,7 +129,7 @@ const Editor = ({
         contentEditable={true}
         // dir="ltr" // Add this attribute
 
-        onInput={
+        onBlur={
           index === currentIndex
             ? () => {
                 handleInput(currentIndex);
@@ -148,10 +148,10 @@ const Editor = ({
           overflowY: "hidden",
           boxSizing: "border-box",
         }}
-        // dangerouslySetInnerHTML={{
-        //   // __html: index === currentIndex ? pageContent : undefined,
-        //   __html: pageContent,
-        // }}
+        dangerouslySetInnerHTML={{
+          // __html: index === currentIndex ? pageContent : undefined,
+          __html: pageContent,
+        }}
       />
     </div>
   );
